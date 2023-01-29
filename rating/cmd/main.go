@@ -48,7 +48,8 @@ func main() {
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
 	repo := memory.New()
-	ctrl := controller.New(repo)
+	//ingester, err := kafka.NewIngester("localhost", "", "")
+	ctrl := controller.New(repo, nil)
 
 	//// HTTP
 	//h := httpHandler.New(ctrl)
