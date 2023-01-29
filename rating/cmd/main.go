@@ -5,13 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"movieexample.com/gen"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
 	"movieexample.com/rating/internal/controller"
 	grpcHandler "movieexample.com/rating/internal/handler/grpc"
-	"movieexample.com/rating/internal/repository/memory"
+	"movieexample.com/rating/internal/repository/mysql"
 	"net"
 	"time"
 )
@@ -47,7 +48,10 @@ func main() {
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
-	repo := memory.New()
+	repo, err := mysql.New()
+	if err != nil {
+		panic(err)
+	}
 	//ingester, err := kafka.NewIngester("localhost", "", "")
 	ctrl := controller.New(repo, nil)
 
@@ -67,5 +71,6 @@ func main() {
 	}
 	srv := grpc.NewServer()
 	gen.RegisterRatingServiceServer(srv, h)
+	reflection.Register(srv)
 	srv.Serve(lis)
 }

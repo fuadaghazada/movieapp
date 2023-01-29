@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"movieexample.com/gen"
 	"movieexample.com/movie/internal/controller"
@@ -67,5 +68,6 @@ func main() {
 	}
 	srv := grpc.NewServer()
 	gen.RegisterMovieServiceServer(srv, h)
+	reflection.Register(srv)
 	srv.Serve(lis)
 }

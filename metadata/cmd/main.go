@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"movieexample.com/gen"
 	metadata "movieexample.com/metadata/internal/controller"
 	grpcHandler "movieexample.com/metadata/internal/handler/grpc"
-	"movieexample.com/metadata/internal/repository/memory"
+	"movieexample.com/metadata/internal/repository/mysql"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
 	"net"
@@ -47,7 +48,10 @@ func main() {
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
-	repo := memory.New()
+	repo, err := mysql.New()
+	if err != nil {
+		panic(err)
+	}
 	ctrl := metadata.New(repo)
 
 	////HTTP
@@ -66,5 +70,6 @@ func main() {
 	}
 	srv := grpc.NewServer()
 	gen.RegisterMetadataServiceServer(srv, h)
+	reflection.Register(srv)
 	srv.Serve(lis)
 }
