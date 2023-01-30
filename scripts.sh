@@ -13,3 +13,24 @@ docker exec -i movieexample_db mysql movieexample -h localhost -P 3306 --protoco
 # gRPC url
 grpcurl -plaintext -d '{"record_id":"1", "record_type":"movie", "user_id": "alex", "rating_value": 5}' localhost:8082 RatingService/PutRating
 grpcurl -plaintext -d '{"record_id":"1", "record_type":"movie"}' localhost:8082 RatingService/GetAggregatedRating
+
+# Docker build
+GOOS=linux go build -o main cmd/*.go
+docker build -t metadata .
+docker build -t rating .
+docker build -t movie .
+
+# Docker publish
+docker tag metadata fuadaghazada/metadata:1.0.0
+docker push fuadaghazada/metadata:1.0.0
+docker tag metadata fuadaghazada/rating:1.0.0
+docker push fuadaghazada/rating:1.0.0
+docker tag metadata fuadaghazada/movie:1.0.0
+docker push fuadaghazada/movie:1.0.0
+
+# K8s
+kubectl apply -f kubernetes-deployment.yml
+kubectl get deployments
+kubectl get pods
+kubectl logs -f <POD_ID>
+kubectl port-forward <POD_ID> 8081:8081

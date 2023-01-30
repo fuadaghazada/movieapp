@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"gopkg.in/yaml.v3"
 	"log"
 	"movieexample.com/gen"
 	"movieexample.com/pkg/discovery"
@@ -14,15 +14,25 @@ import (
 	grpcHandler "movieexample.com/rating/internal/handler/grpc"
 	"movieexample.com/rating/internal/repository/mysql"
 	"net"
+	"os"
 	"time"
 )
 
 const serviceName = "rating"
 
 func main() {
-	var port int
-	flag.IntVar(&port, "port", 8082, "API Handler port")
-	flag.Parse()
+	f, err := os.Open("base.yaml")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	var cfg config
+	if err := yaml.NewDecoder(f).Decode(&cfg); err != nil {
+		panic(err)
+	}
+
+	port := cfg.API.Port
 
 	log.Printf("Starting the %v service\n", serviceName)
 
@@ -65,7 +75,7 @@ func main() {
 
 	h := grpcHandler.New(ctrl)
 
-	lis, err := net.Listen("tcp", "localhost:8082")
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
